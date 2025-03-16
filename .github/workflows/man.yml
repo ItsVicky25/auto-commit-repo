@@ -1,0 +1,44 @@
+name: Auto Commit
+
+on:
+  schedule:
+    - cron: "0 23 * * *"  # Runs every day at 11:00 PM UTC
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Debug - List current directory
+        run: ls -la
+
+      - name: Display log.txt content before changes
+        run: |
+          if [ -f log.txt ]; then 
+            echo "Content of log.txt before changes:" 
+            cat log.txt
+          else 
+            echo "log.txt does not exist; it will be created."
+          fi
+
+      - name: Make changes
+        run: |
+          echo "Auto commit at $(date)" >> log.txt
+          echo "Additional content here..." >> log.txt
+
+      - name: Display log.txt content after changes
+        run: |
+          echo "Content of log.txt after changes:" 
+          cat log.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          # Only commit if there are staged changes
+          git diff --cached --quiet || git commit -m "Automated commit on $(date)"
+          # Attempt to push; if it fails, display an error message
+          git push || echo "Push failed; please check branch protection rules or repository settings."
